@@ -1826,6 +1826,32 @@ static inline void RENAME(nv21ToUV)(uint8_t *dstU, uint8_t *dstV,
     RENAME(nvXXtoUV)(dstV, dstU, src1, width);
 }
 
+// FIXME Maybe dither instead.
+#define YUV_NBPS(depth) \
+static inline void RENAME(yuv ## depth ## ToUV)(uint8_t *dstU, uint8_t *dstV, \
+                                     const uint8_t *_srcU, const uint8_t *_srcV, \
+                                     long width, uint32_t *unused) \
+{ \
+    int i; \
+    const uint16_t *srcU = (const uint16_t*)_srcU; \
+    const uint16_t *srcV = (const uint16_t*)_srcV; \
+    for (i = 0; i < width; i++) { \
+        dstU[i] = srcU[i]>>(depth-8); \
+        dstV[i] = srcV[i]>>(depth-8); \
+    } \
+} \
+\
+static inline void RENAME(yuv ## depth ## ToY)(uint8_t *dstY, const uint8_t *_srcY, long width, uint32_t *unused) \
+{ \
+    int i; \
+    const uint16_t *srcY = (const uint16_t*)_srcY; \
+    for (i = 0; i < width; i++) \
+        dstY[i] = srcY[i]>>(depth-8); \
+} \
+
+YUV_NBPS( 9)
+YUV_NBPS(10)
+
 #if COMPILE_TEMPLATE_MMX
 static inline void RENAME(bgr24ToY_mmx)(uint8_t *dst, const uint8_t *src, long width, enum PixelFormat srcFormat)
 {
@@ -2955,6 +2981,10 @@ static void RENAME(sws_init_swScale)(SwsContext *c)
         case PIX_FMT_PAL8     :
         case PIX_FMT_BGR4_BYTE:
         case PIX_FMT_RGB4_BYTE: c->chrToYV12 = palToUV; break;
+        case PIX_FMT_YUV420P9BE:
+        case PIX_FMT_YUV420P9LE: c->chrToYV12 = RENAME(yuv9ToUV); break;
+        case PIX_FMT_YUV420P10BE:
+        case PIX_FMT_YUV420P10LE: c->chrToYV12 = RENAME(yuv10ToUV); break;
         case PIX_FMT_YUV420P16BE:
         case PIX_FMT_YUV422P16BE:
         case PIX_FMT_YUV444P16BE: c->chrToYV12 = RENAME(BEToUV); break;
@@ -2997,6 +3027,10 @@ static void RENAME(sws_init_swScale)(SwsContext *c)
     c->lumToYV12 = NULL;
     c->alpToYV12 = NULL;
     switch (srcFormat) {
+    case PIX_FMT_YUV420P9BE:
+    case PIX_FMT_YUV420P9LE: c->lumToYV12 = RENAME(yuv9ToY); break;
+    case PIX_FMT_YUV420P10BE:
+    case PIX_FMT_YUV420P10LE: c->lumToYV12 = RENAME(yuv10ToY); break;
     case PIX_FMT_YUYV422  :
     case PIX_FMT_YUV420P16BE:
     case PIX_FMT_YUV422P16BE:

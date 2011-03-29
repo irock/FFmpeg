@@ -164,13 +164,20 @@ FATE_H264 = aud_mw_e                                                    \
             sva_nl1_b                                                   \
             sva_nl2_e                                                   \
 
+FATE_H264_HIGH_DEPTH := fate-h264-high-depth-normal-9                   \
+                        fate-h264-high-depth-normal-10                  \
+                        fate-h264-high-depth-lossless                   \
+                        fate-h264-high-depth-high-qp                    \
+
 FATE_H264  := $(FATE_H264:%=fate-h264-conformance-%)                    \
               fate-h264-interlace-crop                                  \
               fate-h264-lossless                                        \
               fate-h264-extreme-plane-pred                              \
+              $(FATE_H264_HIGH_DEPTH)                                   \
 
 FATE_TESTS += $(FATE_H264)
 fate-h264: $(FATE_H264)
+fate-h264-high-depth: $(FATE_H264_HIGH_DEPTH)
 
 fate-h264-conformance-aud_mw_e: CMD = framecrc  -i $(SAMPLES)/h264-conformance/AUD_MW_E.264
 fate-h264-conformance-ba1_ft_c: CMD = framecrc  -i $(SAMPLES)/h264-conformance/BA1_FT_C.264
@@ -341,3 +348,8 @@ fate-h264-conformance-sva_nl2_e: CMD = framecrc  -i $(SAMPLES)/h264-conformance/
 fate-h264-interlace-crop: CMD = framecrc  -vframes 3 -i $(SAMPLES)/h264/interlaced_crop.mp4
 fate-h264-lossless: CMD = framecrc -i $(SAMPLES)/h264/lossless.h264
 fate-h264-extreme-plane-pred: CMD = framemd5 -strict 1 -vsync 0 -i $(SAMPLES)/h264/extreme-plane-pred.h264
+
+fate-h264-high-depth-normal-10: CMD = framecrc -i $(SAMPLES)/h264-high-depth/normal-10.mkv
+fate-h264-high-depth-normal-9: CMD = framecrc -i $(SAMPLES)/h264-high-depth/normal-9.mkv
+fate-h264-high-depth-lossless: CMD = framecrc -i $(SAMPLES)/h264-high-depth/lossless.h264
+fate-h264-high-depth-high-qp: CMD = framecrc -i $(SAMPLES)/h264-high-depth/high-qp.mkv
